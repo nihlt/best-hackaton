@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0.0",
+  "scenario_id": "template",
+  "timestamp": "2026-04-02T00:00:00Z",
+  "model_info": {
+    "provider": "mock-rule-engine",
+    "model": "heuristic-v1"
+  },
+  "summary": "Template AI response.",
+  "demand_forecasts": [
+    {
+      "node_id": "D1",
+      "resource_id": "fuel_a95",
+      "predicted_quantity": 210,
+      "confidence": 0.75,
+      "reason": "Template demand adjustment"
+    }
+  ],
+  "route_risk_adjustments": [
+    {
+      "edge_id": "E1",
+      "predicted_delay_multiplier": 1.2,
+      "risk_score": 0.4,
+      "reason": "Template risk adjustment"
+    }
+  ],
+  "recommendations": [
+    {
+      "type": "priority_increase",
+      "target_id": "D1",
+      "new_priority": "critical"
+    }
+  ]
+}

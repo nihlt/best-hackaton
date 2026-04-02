@@ -1,0 +1,18 @@
+{
+  "required_keys": [
+    "schema_version",
+    "scenario_id",
+    "timestamp",
+    "model_info",
+    "summary",
+    "demand_forecasts",
+    "route_risk_adjustments",
+    "recommendations"
+  ],
+  "notes": [
+    "AI only analyzes and recommends",
+    "AI does not directly rewrite world_state.json",
+    "At least one recommendation or risk reaction should be present"
+  ],
+  "example_path": "mock/ai/template.ai_analysis.json"
+}

@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0.0",
+  "scenario_id": "demand_spike",
+  "timestamp": "2026-04-02T10:15:00Z",
+  "execution_context": {
+    "connectivity_status": "stable",
+    "optimization_goal": "min_unmet_demand_with_risk_penalty",
+    "time_horizon_minutes": 180,
+    "currency": "UAH"
+  },
+  "resources": [
+    {
+      "resource_id": "fuel_a95",
+      "name": "A95 Fuel",
+      "unit": "liters"
+    },
+    {
+      "resource_id": "medical_kit",
+      "name": "Medical Kit",
+      "unit": "units"
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "W1",
+      "node_type": "warehouse",
+      "name": "Lviv Main Warehouse",
+      "location": { "lat": 49.8397, "lng": 24.0297 },
+      "capacity": { "storage": 1200 },
+      "inventory": [
+        { "resource_id": "fuel_a95", "quantity": 650 },
+        { "resource_id": "medical_kit", "quantity": 220 }
+      ],
+      "status": "active"
+    },
+    {
+      "node_id": "D1",
+      "node_type": "delivery_point",
+      "name": "North Clinic",
+      "location": { "lat": 49.87, "lng": 24.03 },
+      "demands": [
+        { "resource_id": "fuel_a95", "quantity": 200, "priority": "critical" },
+        { "resource_id": "medical_kit", "quantity": 50, "priority": "high" }
+      ],
+      "status": "active"
+    },
+    {
+      "node_id": "D2",
+      "node_type": "delivery_point",
+      "name": "East Hub",
+      "location": { "lat": 49.84, "lng": 24.08 },
+      "demands": [
+        { "resource_id": "fuel_a95", "quantity": 110, "priority": "medium" }
+      ],
+      "status": "active"
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "E1",
+      "from_node_id": "W1",
+      "to_node_id": "D1",
+      "distance_km": 7.5,
+      "estimated_travel_time_min": 18,
+      "status": "open",
+      "risk_score": 0.25
+    },
+    {
+      "edge_id": "E2",
+      "from_node_id": "W1",
+      "to_node_id": "D2",
+      "distance_km": 10.2,
+      "estimated_travel_time_min": 24,
+      "status": "open",
+      "risk_score": 0.35
+    }
+  ],
+  "vehicles": [
+    {
+      "vehicle_id": "truck_01",
+      "vehicle_type": "truck",
+      "capacity": 220,
+      "supported_resources": ["fuel_a95", "medical_kit"],
+      "current_node_id": "W1",
+      "status": "idle"
+    },
+    {
+      "vehicle_id": "truck_02",
+      "vehicle_type": "truck",
+      "capacity": 180,
+      "supported_resources": ["fuel_a95"],
+      "current_node_id": "W1",
+      "status": "idle"
+    }
+  ],
+  "events": [
+    {
+      "event_id": "EV_SPIKE_1",
+      "type": "demand_spike",
+      "severity": "high",
+      "affected_node_ids": ["D1"],
+      "description": "Emergency fuel demand spike near D1"
+    }
+  ]
+}
