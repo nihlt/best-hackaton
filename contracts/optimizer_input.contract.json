@@ -1,0 +1,20 @@
+{
+  "required_keys": [
+    "schema_version",
+    "scenario_id",
+    "timestamp",
+    "objective",
+    "constraints",
+    "resources",
+    "supply",
+    "demand",
+    "routes",
+    "vehicles"
+  ],
+  "notes": [
+    "This file is prepared by the orchestrator",
+    "The optimizer reads only this compact input",
+    "Routes must already contain availability and risk information"
+  ],
+  "example_path": "pipeline/optimizer_input/optimizer_input.json"
+}

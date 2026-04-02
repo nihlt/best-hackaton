@@ -1,0 +1,19 @@
+{
+  "required_keys": [
+    "schema_version",
+    "scenario_id",
+    "timestamp",
+    "objective",
+    "kpis",
+    "allocation_plan",
+    "unserved_demands",
+    "alerts",
+    "explanation"
+  ],
+  "notes": [
+    "This is the final result consumed by the viewer",
+    "Keep the output deterministic for demos",
+    "Always include KPI, alerts, and explanation"
+  ],
+  "example_path": "mock/optimizer/template.solution.json"
+}

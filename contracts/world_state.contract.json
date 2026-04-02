@@ -1,0 +1,19 @@
+{
+  "required_keys": [
+    "schema_version",
+    "scenario_id",
+    "timestamp",
+    "execution_context",
+    "resources",
+    "nodes",
+    "edges",
+    "vehicles",
+    "events"
+  ],
+  "notes": [
+    "world_state.json is the input scenario",
+    "nodes may contain inventory or demands depending on node_type",
+    "events describe what changes the network state"
+  ],
+  "example_path": "scenarios/normal/world_state.json"
+}
