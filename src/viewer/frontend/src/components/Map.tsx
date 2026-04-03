@@ -1,12 +1,11 @@
 import { Box, Paper } from '@mui/material';
-import { type LatLngExpression } from 'leaflet';
+import L, { LatLng, type LatLngExpression } from 'leaflet';
 import { MapContainer, TileLayer } from 'react-leaflet';
 import type { Edge, Node, Solution, Vehicle, WorldState } from '../types/types';
 import MarkerEdge from './shared/MarkerEdge';
 import MarkerEdgePlaned from './shared/MarkerEdgePlaned';
 import MarkerWarehouse from './shared/MarkerNode';
-import MarkerVehicle from './shared/MarkerVehicle'; // Винеси MarkerVehicle в окремий файл
-
+import MarkerVehicle from './shared/MarkerVehicle';
 interface Props {
     worldState: WorldState,
     solution: Solution
@@ -19,7 +18,16 @@ const LogisticsMap = ({ worldState, solution }: Props) => {
         const node = worldState.nodes.find(n => n.node_id === nodeId);
         return node ? { lat: node.location.lat, lng: node.location.lng } : null;
     };
+    const getRouteMidpoint = (from: { lat: number; lng: number }, to: { lat: number; lng: number }) => {
+        const fromLatLng = new LatLng(from.lat, from.lng);
+        const toLatLng = new LatLng(to.lat, to.lng);
 
+        const bounds = L.latLngBounds([fromLatLng, toLatLng]);
+
+        const midpoint = bounds.getCenter();
+
+        return { lat: midpoint.lat, lng: midpoint.lng };
+    };
     return (
         <Paper sx={{ p: 1, height: "100%", flexGrow: 1, backgroundColor: 'var(--blue-slate)', borderRadius: 4 }}>
             <Box sx={{ width: '100%', height: "100%", borderRadius: 3, overflow: 'hidden', border: '2px solid #4f6272' }}>
@@ -29,12 +37,10 @@ const LogisticsMap = ({ worldState, solution }: Props) => {
                         attribution='&copy; <a href="https://carto.com/">CARTO</a>'
                     />
 
-                    {/* 1. Рендеринг вузлів */}
                     {worldState.nodes.map((node: Node) => (
                         <MarkerWarehouse key={node.node_id} node={node} />
                     ))}
 
-                    {/* 2. Рендеринг статичних маршрутів мережі */}
                     {worldState.edges.map((edge: Edge) => {
                         const from = getNodeCoords(edge.from_node_id);
                         const to = getNodeCoords(edge.to_node_id);
@@ -43,15 +49,13 @@ const LogisticsMap = ({ worldState, solution }: Props) => {
                         return <MarkerEdge key={edge.edge_id} edge={edge} isBlocked={edge.status === 'blocked'} path={path} />;
                     })}
 
-                    {/* 3. Рендеринг запланованих шляхів доставки та ТРАНСПОРТУ В ДОРОЗІ */}
                     {solution.allocation_plan.map((plan, i) => {
                         const from = getNodeCoords(plan.from_node_id);
                         const to = getNodeCoords(plan.to_node_id);
                         if (!from || !to) return null;
 
                         const path: [number, number][] = [[from.lat, from.lng], [to.lat, to.lng]];
-
-                        // Знаходимо дані про автомобіль, щоб передати в маркер
+                        const midpoint = getRouteMidpoint(from, to);
                         const vehicleData = worldState.vehicles.find(v => v.vehicle_id === plan.vehicle_id);
 
                         return (
@@ -60,16 +64,14 @@ const LogisticsMap = ({ worldState, solution }: Props) => {
                                 {vehicleData && (
                                     <MarkerVehicle
                                         vehicle={{ ...vehicleData, status: 'in_transit' }}
-                                        position={to} // Відображаємо біля цілі для наочності або посередині
+                                        position={midpoint} // Відображаємо біля цілі для наочності або посередині
                                     />
                                 )}
                             </Box>
                         );
                     })}
 
-                    {/* 4. Рендеринг транспорту, який стоїть на базах (IDLE) */}
                     {worldState.vehicles.map((vehicle: Vehicle) => {
-                        // Якщо транспорт вже є в плані доставки, не малюємо його двічі як idle
                         const isMoving = solution.allocation_plan.some(p => p.vehicle_id === vehicle.vehicle_id);
                         if (isMoving) return null;
 
