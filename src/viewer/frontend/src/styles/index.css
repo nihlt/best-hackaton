@@ -12,6 +12,7 @@
     --text-secondary: var(--periwinkle);
     --error: var(--rosewood);
     --accent: var(--petal-rouge);
+    --success-green: #4caf50;
 }
 
 body {
@@ -19,4 +20,30 @@ body {
     background-color: var(--bg-dark);
     color: var(--text-main);
     font-family: 'Roboto', sans-serif;
+}
+
+/* Стилізація основного контейнера попапа */
+.leaflet-popup-content-wrapper {
+    background-color: var(--blue-slate) !important;
+    color: white !important;
+    border: 1px solid var(--periwinkle);
+    border-radius: 12px !important;
+    padding: 20px !important;
+}
+
+/* Стилізація "носика" (стрілочки) попапа */
+/* .leaflet-popup-tip {
+    background-color: var(--blue-slate) !important;
+    border: 1px solid var(--periwinkle);
+} */
+
+/* Прибираємо стандартні відступи всередині контенту */
+.leaflet-popup-content {
+    margin: 0 !important;
+    line-height: inherit !important;
+    width: auto !important;
+}
+
+.leaflet-popup-close-button {
+    color: var(--periwinkle) !important;
 }

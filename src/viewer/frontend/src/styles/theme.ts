@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material/styles';
+import type { Priority } from '../types/types';
 
 const theme = createTheme({
     palette: {
@@ -60,13 +61,24 @@ const theme = createTheme({
 
 export default theme;
 
-export const getPriorityColor = (priority: string) => {
+
+export const getPriorityColor = (priority: Priority | string | undefined): string => {
     switch (priority) {
         case 'critical':
-            return 'var(--rosewood)'; // #cf1259ff
+            return 'var(--rosewood)';
+
+        case 'high':
         case 'elevated':
-            return 'var(--petal-rouge)'; // #dd7596ff
+            return 'var(--petal-rouge)';
+
+        case 'medium':
+        case 'normal':
+            return 'var(--periwinkle)';
+
+        case 'low':
+            return "var(--success-green)"
+
         default:
-            return 'var(--periwinkle)'; // #b7c3f3ff
+            return 'var(--periwinkle)';
     }
 };

@@ -1,12 +1,24 @@
+/** * 1. БАЗОВІ ТИПИ ТА ПЕРЕЛІКИ (ENUMS)
+ */
 export type Status = 'active' | 'idle' | 'blocked' | 'open';
 export type Severity = 'low' | 'medium' | 'high';
-export type Priority = 'low' | 'medium' | 'high' | 'critical';
-export type NodeType = 'warehouse' | 'delivery_point';
-export type VehicleType = 'truck' | 'van';
+export type Priority = 'low' | 'medium' | 'high' | 'critical' | 'normal' | 'elevated';
+export type NodeType = 'warehouse' | 'delivery_point' | 'supplier' | 'hub';
+export type VehicleType = 'truck' | 'van' | 'special';
+export type ScenarioType = 'normal' | 'demand_spike' | 'blocked_route';
+export type ConnectivityStatus = 'stable' | 'unstable' | 'offline';
 
 export interface Location {
     lat: number;
     lng: number;
+}
+
+/** * 2. РЕСУРСИ ТА ПОПИТ
+ */
+export interface ResourceDefinition {
+    resource_id: string;
+    name: string;
+    unit: string;
 }
 
 export interface ResourceAmount {
@@ -18,13 +30,8 @@ export interface Demand extends ResourceAmount {
     priority: Priority;
 }
 
-
-export interface ResourceDefinition {
-    resource_id: string;
-    name: string;
-    unit: string;
-}
-
+/** * 3. ОСНОВНІ СУТНОСТІ (ENTITIES)
+ */
 export interface Node {
     node_id: string;
     node_type: NodeType;
@@ -63,13 +70,14 @@ export interface SystemEvent {
     description: string;
 }
 
-// Кореневий об'єкт схеми
+/** * 4. СТАН СВІТУ (WORLD STATE) - Вхідні дані
+ */
 export interface WorldState {
     schema_version: string;
     scenario_id: string;
     timestamp: string;
     execution_context: {
-        connectivity_status: 'stable' | 'unstable' | 'offline';
+        connectivity_status: ConnectivityStatus;
         optimization_goal: string;
         time_horizon_minutes: number;
         currency: string;
@@ -81,23 +89,8 @@ export interface WorldState {
     events: SystemEvent[];
 }
 
-
-
-export interface Location {
-    lat: number;
-    lng: number;
-}
-
-export interface Resource {
-    resource_id: string;
-    name?: string;
-    unit: string;
-    quantity: number;
-    priority?: 'normal' | 'elevated' | 'critical';
-}
-
-
-
+/** * 5. РІШЕННЯ (SOLUTION) - Вихідні дані від алгоритму/AI
+ */
 export interface Solution {
     kpis: {
         total_delivered: number;
@@ -111,7 +104,7 @@ export interface Solution {
         quantity: number;
         from_node_id: string;
         to_node_id: string;
-        planned_path: string[];
+        planned_path: string[]; // Послідовність ID вузлів
         eta_min: number;
         status: string;
     }[];
@@ -120,12 +113,5 @@ export interface Solution {
         type: string;
         message: string;
     }[];
-    explanation: string[];
+    explanation: string[]; // Текстове обґрунтування від AI
 }
-
-export type ScenarioType = 'normal' | 'demand_spike' | 'blocked_route';
-
-
-
-
-
