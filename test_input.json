@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "scenario_id": "test-scenario",
+  "objective": "min_unmet_demand_with_risk_penalty",
+  "constraints": {
+    "forbidden_edge_ids": [],
+    "allow_partial_delivery": true,
+    "max_route_time_min": 120,
+    "respect_vehicle_capacity": true
+  },
+  "resources": [
+    {
+      "resource_id": "water",
+      "unit": "liters"
+    }
+  ],
+  "supply": [
+    {
+      "node_id": "warehouse_1",
+      "resource_id": "water",
+      "quantity": 100
+    }
+  ],
+  "demand": [
+    {
+      "node_id": "point_1",
+      "resource_id": "water",
+      "quantity": 60,
+      "priority": "high",
+      "priority_weight": 3
+    }
+  ],
+  "routes": [
+    {
+      "edge_id": "route_1",
+      "from_node_id": "warehouse_1",
+      "to_node_id": "point_1",
+      "distance_km": 10,
+      "travel_time_min": 20,
+      "risk_score": 0.1,
+      "available": true
+    }
+  ],
+  "vehicles": [
+    {
+      "vehicle_id": "truck_1",
+      "vehicle_type": "truck",
+      "capacity": 80,
+      "supported_resources": ["water"],
+      "start_node_id": "warehouse_1"
+    }
+  ]
+}
