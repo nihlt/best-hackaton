@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0.0",
+  "scenario_id": "blocked_route",
+  "timestamp": "2026-04-04T18:34:28.827982Z",
+  "objective": {
+    "type": "min_unmet_demand_with_risk_penalty",
+    "score": 70.6
+  },
+  "kpis": {
+    "total_delivered": 116,
+    "unmet_demand": 254,
+    "vehicle_utilization": 0.53,
+    "avg_delivery_time_min": 38
+  },
+  "allocation_plan": [
+    {
+      "vehicle_id": "truck_01",
+      "resource_id": "fuel_a95",
+      "quantity": 116,
+      "from_node_id": "W1",
+      "to_node_id": "D2",
+      "planned_path": [
+        "W1",
+        "D2"
+      ],
+      "eta_min": 38,
+      "status": "planned"
+    }
+  ],
+  "unserved_demands": [
+    {
+      "node_id": "D1",
+      "resource_id": "fuel_a95",
+      "quantity": 254,
+      "reason": "route_unavailable"
+    }
+  ],
+  "alerts": [
+    {
+      "severity": "critical",
+      "type": "route_blocked",
+      "target_id": "D1",
+      "message": "No available route for D1."
+    },
+    {
+      "severity": "warning",
+      "type": "degraded_mode",
+      "target_id": "blocked_route",
+      "message": "One or more routes are forbidden. Plan generated in degraded mode."
+    }
+  ],
+  "explanation": [
+    "Demand at D1 was left unserved because the route is unavailable.",
+    "Demand at D2 was served because it had high priority and an available route."
+  ]
+}

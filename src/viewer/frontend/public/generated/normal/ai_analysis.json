@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0.0",
+  "scenario_id": "normal",
+  "timestamp": "2026-04-04T18:34:27.853Z",
+  "model_info": {
+    "provider": "mock-rule-engine",
+    "model": "heuristic-v1"
+  },
+  "summary": "Network looks stable; proceed with baseline allocation.",
+  "demand_forecasts": [
+    {
+      "node_id": "D1",
+      "resource_id": "fuel_a95",
+      "predicted_quantity": 180,
+      "confidence": 0.9,
+      "reason": "Base demand"
+    },
+    {
+      "node_id": "D1",
+      "resource_id": "medical_kit",
+      "predicted_quantity": 40,
+      "confidence": 0.9,
+      "reason": "Base demand"
+    },
+    {
+      "node_id": "D2",
+      "resource_id": "fuel_a95",
+      "predicted_quantity": 120,
+      "confidence": 0.9,
+      "reason": "Base demand"
+    }
+  ],
+  "route_risk_adjustments": [
+    {
+      "edge_id": "E1",
+      "predicted_delay_multiplier": 1.2,
+      "risk_score": 0.2,
+      "reason": "Baseline route assessment"
+    },
+    {
+      "edge_id": "E2",
+      "predicted_delay_multiplier": 1.3,
+      "risk_score": 0.3,
+      "reason": "Baseline route assessment"
+    }
+  ],
+  "recommendations": [
+    {
+      "type": "priority_increase",
+      "target_id": "D1",
+      "new_priority": "critical"
+    },
+    {
+      "type": "priority_increase",
+      "target_id": "D1",
+      "new_priority": "critical"
+    },
+    {
+      "type": "priority_increase",
+      "target_id": "D2",
+      "new_priority": "critical"
+    },
+    {
+      "type": "reroute",
+      "target_id": "E1",
+      "action": "monitor"
+    },
+    {
+      "type": "reroute",
+      "target_id": "E2",
+      "action": "monitor"
+    }
+  ]
+}

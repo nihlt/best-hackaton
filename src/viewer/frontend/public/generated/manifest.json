@@ -1,0 +1,8 @@
+{
+  "generated_at": "2026-04-04T18:34:28.854Z",
+  "scenarios": [
+    "normal",
+    "demand_spike",
+    "blocked_route"
+  ]
+}
