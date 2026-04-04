@@ -25,11 +25,22 @@
       "node_id": "W1",
       "node_type": "warehouse",
       "name": "Lviv Main Warehouse",
-      "location": { "lat": 49.8397, "lng": 24.0297 },
-      "capacity": { "storage": 1200 },
+      "location": {
+        "lat": 49.8397,
+        "lng": 24.0297
+      },
+      "capacity": {
+        "storage": 1200
+      },
       "inventory": [
-        { "resource_id": "fuel_a95", "quantity": 600 },
-        { "resource_id": "medical_kit", "quantity": 180 }
+        {
+          "resource_id": "fuel_a95",
+          "quantity": 600
+        },
+        {
+          "resource_id": "medical_kit",
+          "quantity": 180
+        }
       ],
       "status": "active"
     },
@@ -37,10 +48,21 @@
       "node_id": "D1",
       "node_type": "delivery_point",
       "name": "North Clinic",
-      "location": { "lat": 49.87, "lng": 24.03 },
+      "location": {
+        "lat": 49.87,
+        "lng": 24.03
+      },
       "demands": [
-        { "resource_id": "fuel_a95", "quantity": 180, "priority": "critical" },
-        { "resource_id": "medical_kit", "quantity": 40, "priority": "high" }
+        {
+          "resource_id": "fuel_a95",
+          "quantity": 180,
+          "priority": "critical"
+        },
+        {
+          "resource_id": "medical_kit",
+          "quantity": 40,
+          "priority": "high"
+        }
       ],
       "status": "active"
     },
@@ -48,9 +70,16 @@
       "node_id": "D2",
       "node_type": "delivery_point",
       "name": "East Hub",
-      "location": { "lat": 49.84, "lng": 24.08 },
+      "location": {
+        "lat": 49.84,
+        "lng": 24.08
+      },
       "demands": [
-        { "resource_id": "fuel_a95", "quantity": 120, "priority": "medium" }
+        {
+          "resource_id": "fuel_a95",
+          "quantity": 120,
+          "priority": "medium"
+        }
       ],
       "status": "active"
     }
@@ -80,15 +109,20 @@
       "vehicle_id": "truck_01",
       "vehicle_type": "truck",
       "capacity": 220,
-      "supported_resources": ["fuel_a95", "medical_kit"],
-      "current_node_id": "W1",
+      "supported_resources": [
+        "fuel_a95",
+        "medical_kit"
+      ],
+      "current_node_id": "D1",
       "status": "idle"
     },
     {
       "vehicle_id": "van_02",
       "vehicle_type": "van",
       "capacity": 90,
-      "supported_resources": ["medical_kit"],
+      "supported_resources": [
+        "medical_kit"
+      ],
       "current_node_id": "W1",
       "status": "idle"
     }
@@ -98,7 +132,10 @@
       "event_id": "EV_NORMAL_1",
       "type": "routine_operations",
       "severity": "low",
-      "affected_node_ids": ["D1", "D2"],
+      "affected_node_ids": [
+        "D1",
+        "D2"
+      ],
       "description": "Normal operating conditions"
     }
   ]
