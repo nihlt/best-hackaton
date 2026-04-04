@@ -108,10 +108,19 @@ export interface Solution {
         eta_min: number;
         status: string;
     }[];
+    unservedDemands:
+    {
+        node_id: string,
+        resource_id: string,
+        quantity: number,
+        reason: string
+    }[]
+
     alerts: {
         severity: 'info' | 'warning' | 'critical';
         type: string;
         message: string;
+        target_id: string
     }[];
-    explanation: string[]; // Текстове обґрунтування від AI
+    explanation: string[];
 }

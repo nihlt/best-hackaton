@@ -8,8 +8,10 @@ interface Props {
     explanation: string[],
     alerts: {
         severity: 'info' | 'warning' | 'critical';
+        type: string;
         message: string;
-    }[]
+        target_id: string
+    }[];
 }
 
 export default function AiChatPanel({ explanation, alerts }: Props) {
@@ -56,19 +58,45 @@ export default function AiChatPanel({ explanation, alerts }: Props) {
             }}>
 
 
-                {alerts && alerts.map((alert, index) => (
-                    <Box key={`alert-${index}`} sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        backgroundColor: alert.severity === 'critical' ? 'rgba(207, 18, 89, 0.1)' : 'rgba(221, 117, 150, 0.1)',
-                        border: `1px solid ${alert.severity === 'critical' ? 'var(--rosewood)' : 'var(--petal-rouge)'}`,
-                        display: 'flex',
-                        gap: 1
-                    }}>
-                        <WarningAmberIcon sx={{ fontSize: 20, color: alert.severity === 'critical' ? 'var(--rosewood)' : 'var(--petal-rouge)' }} />
-                        <Typography variant="caption" sx={{ color: '#fff' }}>{alert.message}</Typography>
-                    </Box>
-                ))}
+                {alerts && alerts.map((alert, index) => {
+                    // Визначаємо стилі на основі severity
+                    const isCritical = alert.severity === 'critical';
+                    const isWarning = alert.severity === 'warning';
+
+                    // Вибір кольору: rosewood для критичних, petal-rouge для попереджень, periwinkle для інфо
+                    const accentColor = isCritical
+                        ? 'var(--rosewood)'
+                        : isWarning
+                            ? 'var(--petal-rouge)'
+                            : 'var(--periwinkle)';
+
+                    const bgColor = isCritical
+                        ? 'rgba(207, 18, 89, 0.1)'
+                        : 'rgba(221, 117, 150, 0.1)';
+
+                    return (
+                        <Box key={`alert-${index}`} sx={{
+                            p: 1.5,
+                            borderRadius: 2,
+                            backgroundColor: bgColor,
+                            border: `1px solid ${accentColor}`,
+                            display: 'flex',
+                            flexDirection: 'column', // Змінюємо на колонку для кращої структури
+                            gap: 0.5
+                        }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <WarningAmberIcon sx={{ fontSize: 18, color: accentColor }} />
+                                <Typography variant="caption" sx={{ fontWeight: 800, color: accentColor, textTransform: 'uppercase' }}>
+                                    {alert.type.replace('_', ' ')} {alert.target_id ? `| ${alert.target_id}` : ''}
+                                </Typography>
+                            </Box>
+
+                            <Typography variant="body2" sx={{ color: '#fff', opacity: 0.9, lineHeight: 1.4 }}>
+                                {alert.message}
+                            </Typography>
+                        </Box>
+                    );
+                })}
 
 
                 {explanation && explanation.map((text, index) => (
