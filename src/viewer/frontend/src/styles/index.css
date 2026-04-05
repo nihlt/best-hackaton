@@ -47,3 +47,18 @@ body {
 .leaflet-popup-close-button {
     color: var(--periwinkle) !important;
 }
+
+@keyframes ant-path-animation {
+    from {
+        stroke-dashoffset: 100%;
+    }
+
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.ant-path-animate {
+    stroke-dasharray: 10, 10;
+    animation: ant-path-animation 20s linear infinite;
+}
