@@ -1,5 +1,3 @@
-/** * 1. БАЗОВІ ТИПИ ТА ПЕРЕЛІКИ (ENUMS)
- */
 export type Status = 'active' | 'idle' | 'blocked' | 'open';
 export type Severity = 'low' | 'medium' | 'high';
 export type Priority = 'low' | 'medium' | 'high' | 'critical' | 'normal' | 'elevated';
@@ -13,8 +11,6 @@ export interface Location {
     lng: number;
 }
 
-/** * 2. РЕСУРСИ ТА ПОПИТ
- */
 export interface ResourceDefinition {
     resource_id: string;
     name: string;
@@ -30,8 +26,6 @@ export interface Demand extends ResourceAmount {
     priority: Priority;
 }
 
-/** * 3. ОСНОВНІ СУТНОСТІ (ENTITIES)
- */
 export interface Node {
     node_id: string;
     node_type: NodeType;
@@ -48,7 +42,8 @@ export interface Edge {
     from_node_id: string;
     to_node_id: string;
     distance_km: number;
-    estimated_travel_time_min: number;
+    estimated_travel_time_min?: number;
+    travel_time_min?: number;
     status: Status;
     risk_score: number;
 }
@@ -59,7 +54,7 @@ export interface Vehicle {
     capacity: number;
     supported_resources: string[];
     current_node_id: string;
-    status: Status;
+    status: Status | 'in_transit';
 }
 
 export interface SystemEvent {
@@ -70,8 +65,6 @@ export interface SystemEvent {
     description: string;
 }
 
-/** * 4. СТАН СВІТУ (WORLD STATE) - Вхідні дані
- */
 export interface WorldState {
     schema_version: string;
     scenario_id: string;
@@ -89,9 +82,14 @@ export interface WorldState {
     events: SystemEvent[];
 }
 
-/** * 5. РІШЕННЯ (SOLUTION) - Вихідні дані від алгоритму/AI
- */
 export interface Solution {
+    schema_version?: string;
+    scenario_id?: string;
+    timestamp?: string;
+    objective?: {
+        type: string;
+        score: number;
+    };
     kpis: {
         total_delivered: number;
         unmet_demand: number;
@@ -104,7 +102,7 @@ export interface Solution {
         quantity: number;
         from_node_id: string;
         to_node_id: string;
-        planned_path: string[]; // Послідовність ID вузлів
+        planned_path: string[];
         eta_min: number;
         status: string;
     }[];
@@ -119,8 +117,85 @@ export interface Solution {
     alerts: {
         severity: 'info' | 'warning' | 'critical';
         type: string;
+        target_id?: string;
         message: string;
         target_id: string
     }[];
+    unserved_demands?: {
+        node_id: string;
+        resource_id: string;
+        quantity: number;
+        reason: string;
+    }[];
     explanation: string[];
+}
+
+export interface AiAnalysis {
+    schema_version: string;
+    scenario_id: string;
+    timestamp: string;
+    model_info: {
+        provider: string;
+        model: string;
+    };
+    summary: string;
+    demand_forecasts: {
+        node_id: string;
+        resource_id: string;
+        predicted_quantity: number;
+        confidence: number;
+        reason: string;
+    }[];
+    route_risk_adjustments: {
+        edge_id: string;
+        predicted_delay_multiplier: number;
+        risk_score: number;
+        reason: string;
+    }[];
+    recommendations: {
+        type: string;
+        target_id: string;
+        new_priority?: string;
+        action?: string;
+    }[];
+}
+
+export interface AiAssistantRisk {
+    level: 'low' | 'medium' | 'high';
+    type: 'route_delay' | 'stock_risk' | 'demand_risk' | 'connectivity_risk';
+    target_id: string;
+    message: string;
+}
+
+export interface AiAssistantRecommendation {
+    type: 'reroute' | 'reprioritize' | 'rebalance' | 'monitor';
+    target_id: string;
+    message: string;
+}
+
+export interface AiAssistantInsights {
+    most_critical_node_id: string | null;
+    best_source_node_id: string | null;
+    largest_eta_min: number;
+}
+
+export interface AiAssistantResponse {
+    schema_version: string;
+    timestamp: string;
+    scenario_id: string;
+    model_info: {
+        provider: string;
+        model: string;
+    };
+    summary: string;
+    risks: AiAssistantRisk[];
+    recommendations: AiAssistantRecommendation[];
+    insights: AiAssistantInsights;
+    chat_answer: string;
+}
+
+export interface AiUserAction {
+    type: 'scenario_changed' | 'add_node' | 'move_node' | 'delete_node' | 'none';
+    target_id?: string;
+    message: string;
 }

@@ -1,0 +1,142 @@
+{
+  "schema_version": "1.0.0",
+  "scenario_id": "normal",
+  "timestamp": "2026-04-02T09:00:00Z",
+  "execution_context": {
+    "connectivity_status": "stable",
+    "optimization_goal": "min_unmet_demand_with_risk_penalty",
+    "time_horizon_minutes": 180,
+    "currency": "UAH"
+  },
+  "resources": [
+    {
+      "resource_id": "fuel_a95",
+      "name": "A95 Fuel",
+      "unit": "liters"
+    },
+    {
+      "resource_id": "medical_kit",
+      "name": "Medical Kit",
+      "unit": "units"
+    }
+  ],
+  "nodes": [
+    {
+      "node_id": "W1",
+      "node_type": "warehouse",
+      "name": "Lviv Main Warehouse",
+      "location": {
+        "lat": 49.8397,
+        "lng": 24.0297
+      },
+      "capacity": {
+        "storage": 1200
+      },
+      "inventory": [
+        {
+          "resource_id": "fuel_a95",
+          "quantity": 600
+        },
+        {
+          "resource_id": "medical_kit",
+          "quantity": 180
+        }
+      ],
+      "status": "active"
+    },
+    {
+      "node_id": "D1",
+      "node_type": "delivery_point",
+      "name": "North Clinic",
+      "location": {
+        "lat": 49.87,
+        "lng": 24.03
+      },
+      "demands": [
+        {
+          "resource_id": "fuel_a95",
+          "quantity": 180,
+          "priority": "critical"
+        },
+        {
+          "resource_id": "medical_kit",
+          "quantity": 40,
+          "priority": "high"
+        }
+      ],
+      "status": "active"
+    },
+    {
+      "node_id": "D2",
+      "node_type": "delivery_point",
+      "name": "East Hub",
+      "location": {
+        "lat": 49.84,
+        "lng": 24.08
+      },
+      "demands": [
+        {
+          "resource_id": "fuel_a95",
+          "quantity": 120,
+          "priority": "medium"
+        }
+      ],
+      "status": "active"
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "E1",
+      "from_node_id": "W1",
+      "to_node_id": "D1",
+      "distance_km": 7.5,
+      "estimated_travel_time_min": 18,
+      "status": "open",
+      "risk_score": 0.2
+    },
+    {
+      "edge_id": "E2",
+      "from_node_id": "W1",
+      "to_node_id": "D2",
+      "distance_km": 10.2,
+      "estimated_travel_time_min": 24,
+      "status": "open",
+      "risk_score": 0.3
+    }
+  ],
+  "vehicles": [
+    {
+      "vehicle_id": "truck_01",
+      "vehicle_type": "truck",
+      "capacity": 220,
+      "supported_resources": [
+        "fuel_a95",
+        "medical_kit"
+      ],
+      "current_node_id": "D1",
+      "status": "idle"
+    },
+    {
+      "vehicle_id": "van_02",
+      "vehicle_type": "van",
+      "capacity": 90,
+      "supported_resources": [
+        "medical_kit"
+      ],
+      "current_node_id": "W1",
+      "status": "idle"
+    }
+  ],
+  "events": [
+    {
+      "event_id": "EV_NORMAL_1",
+      "type": "routine_operations",
+      "severity": "low",
+      "affected_node_ids": [
+        "D1",
+        "D2"
+      ],
+      "description": "Normal operating conditions"
+    }
+  ]
+}

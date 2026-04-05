@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "scenario_id": "blocked_route",
+  "timestamp": "2026-04-05T10:45:31.955Z",
+  "model_info": {
+    "provider": "mock-rule-engine",
+    "model": "heuristic-v1"
+  },
+  "summary": "Blocked route detected; avoid affected edges if possible. Connectivity is unstable; degraded mode fallback should be available.",
+  "demand_forecasts": [
+    {
+      "node_id": "D1",
+      "resource_id": "fuel_a95",
+      "predicted_quantity": 254,
+      "confidence": 0.87,
+      "reason": "Primary route to D1 is blocked after an accident; conservative uplift due to unstable connectivity"
+    },
+    {
+      "node_id": "D2",
+      "resource_id": "fuel_a95",
+      "predicted_quantity": 116,
+      "confidence": 0.89,
+      "reason": "Base demand; conservative uplift due to unstable connectivity"
+    }
+  ],
+  "route_risk_adjustments": [
+    {
+      "edge_id": "E1",
+      "predicted_delay_multiplier": 2.2,
+      "risk_score": 0.98,
+      "reason": "Intermittent network availability across the region"
+    },
+    {
+      "edge_id": "E2",
+      "predicted_delay_multiplier": 1.45,
+      "risk_score": 0.65,
+      "reason": "Intermittent network availability across the region"
+    }
+  ],
+  "recommendations": [
+    {
+      "type": "priority_increase",
+      "target_id": "D1",
+      "new_priority": "critical"
+    },
+    {
+      "type": "priority_increase",
+      "target_id": "D2",
+      "new_priority": "critical"
+    },
+    {
+      "type": "reroute",
+      "target_id": "E1",
+      "action": "avoid_if_possible"
+    },
+    {
+      "type": "reroute",
+      "target_id": "E2",
+      "action": "monitor"
+    },
+    {
+      "type": "degraded_mode",
+      "target_id": "blocked_route",
+      "action": "use_last_valid_snapshot"
+    }
+  ]
+}
