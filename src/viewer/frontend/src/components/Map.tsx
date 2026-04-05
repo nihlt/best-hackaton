@@ -41,13 +41,7 @@ const LogisticsMap = ({ worldState, solution }: Props) => {
                         <MarkerWarehouse key={node.node_id} node={node} />
                     ))}
 
-                    {worldState.edges.map((edge: Edge) => {
-                        const from = getNodeCoords(edge.from_node_id);
-                        const to = getNodeCoords(edge.to_node_id);
-                        if (!from || !to) return null;
-                        const path: [number, number][] = [[from.lat, from.lng], [to.lat, to.lng]];
-                        return <MarkerEdge key={edge.edge_id} edge={edge} isBlocked={edge.status === 'blocked'} path={path} />;
-                    })}
+
 
                     {solution.allocation_plan.map((plan, i) => {
                         const from = getNodeCoords(plan.from_node_id);
@@ -60,13 +54,14 @@ const LogisticsMap = ({ worldState, solution }: Props) => {
 
                         return (
                             <Box key={`plan-group-${i}`}>
-                                <MarkerEdgePlaned plan={plan} path={path} i={i} />
+
                                 {vehicleData && (
                                     <MarkerVehicle
                                         vehicle={{ ...vehicleData, status: 'in_transit' }}
                                         position={midpoint} // Відображаємо біля цілі для наочності або посередині
                                     />
                                 )}
+                                <MarkerEdgePlaned plan={plan} path={path} i={i} />
                             </Box>
                         );
                     })}
@@ -83,6 +78,13 @@ const LogisticsMap = ({ worldState, solution }: Props) => {
                                 position={coords}
                             />
                         ) : null;
+                    })}
+                    {worldState.edges.map((edge: Edge) => {
+                        const from = getNodeCoords(edge.from_node_id);
+                        const to = getNodeCoords(edge.to_node_id);
+                        if (!from || !to) return null;
+                        const path: [number, number][] = [[from.lat, from.lng], [to.lat, to.lng]];
+                        return <MarkerEdge key={edge.edge_id} edge={edge} isBlocked={edge.status === 'blocked'} path={path} />;
                     })}
 
                 </MapContainer>

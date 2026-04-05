@@ -81,6 +81,11 @@ const App: React.FC = () => {
 
         if (!cancelled) {
           setBundle({ worldState, aiAnalysis, solution });
+          localStorage.setItem("data", JSON.stringify({
+            worldState,
+            aiAnalysis,
+            solution
+          }));
         }
       } catch (error) {
         if (!cancelled) {
