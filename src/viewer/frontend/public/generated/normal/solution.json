@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "scenario_id": "normal",
-  "timestamp": "2026-04-04T18:34:28.246802Z",
+  "timestamp": "2026-04-05T10:45:31.650854Z",
   "objective": {
     "type": "min_unmet_demand_with_risk_penalty",
     "score": 90

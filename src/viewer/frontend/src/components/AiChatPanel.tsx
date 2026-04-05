@@ -3,13 +3,17 @@ import SmartToyIcon from '@mui/icons-material/SmartToy';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import { Box, Chip, Divider, IconButton, Paper, TextField, Typography } from '@mui/material';
+import { Box, Chip, CircularProgress, Divider, IconButton, Paper, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
-import type { AiAnalysis, Solution } from '../types/types';
+import type { AiAnalysis, AiAssistantResponse, AiUserAction, Solution, WorldState } from '../types/types';
+import { buildAssistantFallback } from '../utils/assistantFallback';
 
 interface Props {
     aiAnalysis: AiAnalysis;
+    assistantState: AiAssistantResponse;
     solution: Solution;
+    worldState: WorldState;
+    userAction: AiUserAction;
     explanation: string[];
     alerts: {
         severity: 'info' | 'warning' | 'critical';
@@ -17,14 +21,51 @@ interface Props {
     }[];
 }
 
-export default function AiChatPanel({ aiAnalysis, solution, explanation, alerts }: Props) {
-    const [messages, setMessages] = useState<string[]>([]);
-    const [curMessage, setCurMessage] = useState('');
+interface ChatMessage {
+    role: 'user' | 'assistant';
+    text: string;
+}
 
-    const handleSendMessage = () => {
-        if (!curMessage.trim()) return;
-        setMessages((prevMessages) => [...prevMessages, curMessage]);
+export default function AiChatPanel({ aiAnalysis, assistantState, solution, worldState, userAction, explanation, alerts }: Props) {
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [curMessage, setCurMessage] = useState('');
+    const [isSending, setIsSending] = useState(false);
+
+    const handleSendMessage = async () => {
+        if (!curMessage.trim() || isSending) return;
+
+        const nextUserMessage = curMessage.trim();
+        setMessages((prevMessages) => [...prevMessages, { role: 'user', text: nextUserMessage }]);
         setCurMessage('');
+        setIsSending(true);
+
+        try {
+            const response = await fetch('/api/assistant/analyze', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    worldState,
+                    solution,
+                    aiAnalysis,
+                    userAction,
+                    userMessage: nextUserMessage,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`Assistant endpoint failed with ${response.status}`);
+            }
+
+            const assistantReply = (await response.json()) as AiAssistantResponse;
+            setMessages((prevMessages) => [...prevMessages, { role: 'assistant', text: assistantReply.chat_answer }]);
+        } catch {
+            const fallbackReply = buildAssistantFallback(worldState, solution, aiAnalysis, nextUserMessage, userAction);
+            setMessages((prevMessages) => [...prevMessages, { role: 'assistant', text: fallbackReply.chat_answer }]);
+        } finally {
+            setIsSending(false);
+        }
     };
 
     return (
@@ -74,18 +115,21 @@ export default function AiChatPanel({ aiAnalysis, solution, explanation, alerts 
                         AI Summary
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#fff', lineHeight: 1.6 }}>
-                        {aiAnalysis.summary}
+                        {assistantState.summary}
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1.5 }}>
-                        <Chip size="small" label={`Provider: ${aiAnalysis.model_info.provider}`} sx={{ color: '#fff' }} />
-                        <Chip size="small" label={`Model: ${aiAnalysis.model_info.model}`} sx={{ color: '#fff' }} />
+                        <Chip size="small" label={`Provider: ${assistantState.model_info.provider}`} sx={{ color: '#fff' }} />
+                        <Chip size="small" label={`Model: ${assistantState.model_info.model}`} sx={{ color: '#fff' }} />
                         {solution.objective && (
                             <Chip size="small" label={`Score: ${solution.objective.score}`} sx={{ color: '#fff' }} />
+                        )}
+                        {assistantState.insights.most_critical_node_id && (
+                            <Chip size="small" label={`Critical: ${assistantState.insights.most_critical_node_id}`} sx={{ color: '#fff' }} />
                         )}
                     </Box>
                 </Box>
 
-                {alerts.map((alert, index) => (
+                {[...alerts, ...assistantState.risks.map((risk) => ({ severity: risk.level === 'high' ? 'critical' : 'warning', message: risk.message }))].map((alert, index) => (
                     <Box
                         key={`alert-${index}`}
                         sx={{
@@ -123,11 +167,9 @@ export default function AiChatPanel({ aiAnalysis, solution, explanation, alerts 
                             Recommendations
                         </Typography>
                     </Box>
-                    {aiAnalysis.recommendations.map((recommendation, index) => (
+                    {assistantState.recommendations.map((recommendation, index) => (
                         <Typography key={`rec-${index}`} variant="body2" sx={{ color: '#fff', mb: 0.75, lineHeight: 1.5 }}>
-                            {recommendation.type} for {recommendation.target_id}
-                            {recommendation.new_priority ? ` -> ${recommendation.new_priority}` : ''}
-                            {recommendation.action ? ` -> ${recommendation.action}` : ''}
+                            {recommendation.type} for {recommendation.target_id}{' -> '}{recommendation.message}
                         </Typography>
                     ))}
                 </Box>
@@ -201,16 +243,17 @@ export default function AiChatPanel({ aiAnalysis, solution, explanation, alerts 
                     <Box
                         key={`message-${index}`}
                         sx={{
-                            alignSelf: 'flex-end',
+                            alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
                             maxWidth: '90%',
                             backgroundColor: 'rgba(183, 195, 243, 0.05)',
                             p: 2,
-                            borderRadius: '16px 0px 16px 16px',
-                            borderRight: '3px solid var(--periwinkle)',
+                            borderRadius: message.role === 'user' ? '16px 0px 16px 16px' : '0px 16px 16px 16px',
+                            borderRight: message.role === 'user' ? '3px solid var(--periwinkle)' : 'none',
+                            borderLeft: message.role === 'assistant' ? '3px solid var(--periwinkle)' : 'none',
                         }}
                     >
                         <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
-                            {message}
+                            {message.text}
                         </Typography>
                     </Box>
                 ))}
@@ -220,12 +263,12 @@ export default function AiChatPanel({ aiAnalysis, solution, explanation, alerts 
                 <TextField
                     fullWidth
                     size="small"
-                    placeholder="Add review notes for the demo"
+                    placeholder="Ask what changed in the current logistics state"
                     variant="outlined"
                     value={curMessage}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
-                            handleSendMessage();
+                            void handleSendMessage();
                             e.preventDefault();
                         }
                     }}
@@ -239,8 +282,10 @@ export default function AiChatPanel({ aiAnalysis, solution, explanation, alerts 
                         },
                     }}
                     InputProps={{
-                        endAdornment: (
-                            <IconButton onClick={handleSendMessage} size="small" sx={{ color: 'var(--periwinkle)' }}>
+                        endAdornment: isSending ? (
+                            <CircularProgress size={18} sx={{ color: 'var(--periwinkle)' }} />
+                        ) : (
+                            <IconButton onClick={() => void handleSendMessage()} size="small" sx={{ color: 'var(--periwinkle)' }}>
                                 <SendIcon fontSize="small" />
                             </IconButton>
                         ),
