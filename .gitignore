@@ -215,3 +215,4 @@ pipeline/solution/*.json
 #api key
 .env
 /src/viewer/frontend/public/generated
+/src/viewer/frontend/public/generated

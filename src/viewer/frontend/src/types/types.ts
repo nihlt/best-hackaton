@@ -106,20 +106,18 @@ export interface Solution {
         eta_min: number;
         status: string;
     }[];
-    unservedDemands:
-    {
+    unservedDemands?: {
         node_id: string,
         resource_id: string,
         quantity: number,
         reason: string
-    }[]
+    }[];
 
     alerts: {
         severity: 'info' | 'warning' | 'critical';
         type: string;
-        target_id?: string;
         message: string;
-        target_id: string
+        target_id?: string;
     }[];
     unserved_demands?: {
         node_id: string;

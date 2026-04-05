@@ -1,5 +1,5 @@
 import { Box, Chip, Paper, Stack } from '@mui/material';
-import L, { LatLng, type LatLngExpression } from 'leaflet';
+import { type LatLngExpression } from 'leaflet';
 import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
 import type { Edge, Node, NodeType, Solution, Vehicle, WorldState } from '../types/types';
 import MarkerEdge from './shared/MarkerEdge';
@@ -59,16 +59,6 @@ const LogisticsMap = ({
         const node = worldState.nodes.find(n => n.node_id === nodeId);
         return node ? { lat: node.location.lat, lng: node.location.lng } : null;
     };
-    const getRouteMidpoint = (from: { lat: number; lng: number }, to: { lat: number; lng: number }) => {
-        const fromLatLng = new LatLng(from.lat, from.lng);
-        const toLatLng = new LatLng(to.lat, to.lng);
-
-        const bounds = L.latLngBounds([fromLatLng, toLatLng]);
-
-        const midpoint = bounds.getCenter();
-
-        return { lat: midpoint.lat, lng: midpoint.lng };
-    };
     return (
         <Paper sx={{ p: 1, height: "100%", flexGrow: 1, backgroundColor: 'var(--blue-slate)', borderRadius: 4, position: 'relative' }}>
             <Box sx={{ width: '100%', height: "100%", borderRadius: 3, overflow: 'hidden', border: '2px solid #4f6272' }}>
@@ -117,8 +107,6 @@ const LogisticsMap = ({
                         const allocationId = `${plan.vehicle_id}:${plan.from_node_id}:${plan.to_node_id}:${plan.resource_id}:${i}`;
                         const polyline = allocationPolylines[allocationId];
                         const path: [number, number][] = (polyline ?? [from, to]).map((point) => [point.lat, point.lng]);
-                        const midpoint = getRouteMidpoint(from, to);
-                        const vehicleData = worldState.vehicles.find(v => v.vehicle_id === plan.vehicle_id);
 
                         return (
                             <Box key={`plan-group-${i}`}>

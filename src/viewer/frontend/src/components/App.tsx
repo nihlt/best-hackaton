@@ -2,7 +2,7 @@ import AddLocationAltIcon from '@mui/icons-material/AddLocationAlt';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import { Box, Button, CircularProgress, CssBaseline, Grid, Stack, ThemeProvider, Typography } from '@mui/material';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import templateAiJson from '../../../../../mock/ai/template.ai_analysis.json';
 import templateSolutionJson from '../../../../../mock/optimizer/template.solution.json';
@@ -12,7 +12,7 @@ import normalWorldStateJson from '../../../../../scenarios/normal/world_state.js
 import theme from '../styles/theme';
 import { buildAssistantFallback } from '../utils/assistantFallback';
 import type { AiAnalysis, AiAssistantResponse, AiUserAction, ScenarioType, Solution, WorldState } from '../types/types';
-import { deriveRoutingState } from '../utils/lvivRouting';
+import { deriveRoutingState, deriveRoutingStateWithOsm } from '../utils/lvivRouting';
 import AiChatPanel from './AiChatPanel';
 import Header from './Header';
 import KpiDashboard from './KpiDashboard';
@@ -67,11 +67,34 @@ const App: React.FC = () => {
   const [assistantState, setAssistantState] = useState<AiAssistantResponse>(
     buildAssistantFallback(fallbackBundle.normal.worldState, fallbackBundle.normal.solution, fallbackBundle.normal.aiAnalysis),
   );
-
-  const routingState = useMemo(
-    () => deriveRoutingState(bundle.worldState, bundle.aiAnalysis),
-    [bundle.worldState, bundle.aiAnalysis],
+  const [routingState, setRoutingState] = useState(() =>
+    deriveRoutingState(fallbackBundle.normal.worldState, fallbackBundle.normal.aiAnalysis),
   );
+
+  useEffect(() => {
+    let cancelled = false;
+    const fallbackRoutingState = deriveRoutingState(bundle.worldState, bundle.aiAnalysis);
+    setRoutingState(fallbackRoutingState);
+
+    async function resolveOsmRouting() {
+      try {
+        const nextRoutingState = await deriveRoutingStateWithOsm(bundle.worldState, bundle.aiAnalysis);
+        if (!cancelled) {
+          setRoutingState(nextRoutingState);
+        }
+      } catch {
+        if (!cancelled) {
+          setRoutingState(fallbackRoutingState);
+        }
+      }
+    }
+
+    resolveOsmRouting();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bundle.worldState, bundle.aiAnalysis]);
 
   useEffect(() => {
     let cancelled = false;
