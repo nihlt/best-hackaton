@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "scenario_id": "demand_spike",
-  "timestamp": "2026-04-04T18:34:28.312Z",
+  "timestamp": "2026-04-05T10:05:35.982Z",
   "model_info": {
     "provider": "mock-rule-engine",
     "model": "heuristic-v1"

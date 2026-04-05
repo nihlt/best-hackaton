@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "scenario_id": "blocked_route",
-  "timestamp": "2026-04-04T18:34:28.827982Z",
+  "timestamp": "2026-04-05T10:05:36.038Z",
   "objective": {
     "type": "min_unmet_demand_with_risk_penalty",
     "score": 70.6

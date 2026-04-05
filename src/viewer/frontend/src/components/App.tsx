@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Container, CssBaseline, Grid, Stack, ThemeProvider, Typography } from '@mui/material';
+import { Box, CircularProgress, CssBaseline, Grid, Stack, ThemeProvider, Typography } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 
 import templateAiJson from '../../../../../mock/ai/template.ai_analysis.json';
@@ -110,7 +110,16 @@ const App: React.FC = () => {
       <CssBaseline />
       <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', backgroundColor: 'var(--charcoal-blue)' }}>
         <Header worldState={bundle.worldState} currentScenario={currentScenario} onScenarioChange={setCurrentScenario} />
-        <Container maxWidth="xl" sx={{ mt: 3, mb: 3, flexGrow: 1 }}>
+        <Box
+          sx={{
+            mt: 3,
+            mb: 3,
+            flexGrow: 1,
+            width: '100%',
+            px: '2%',
+            boxSizing: 'border-box',
+          }}
+        >
           {isLoading ? (
             <Stack sx={{ height: '100%' }} alignItems="center" justifyContent="center" spacing={2}>
               <CircularProgress sx={{ color: 'var(--periwinkle)' }} />
@@ -139,11 +148,21 @@ const App: React.FC = () => {
                   <KpiDashboard kpis={bundle.solution.kpis} />
                 </Box>
 
-                <Box sx={{ display: 'flex', height: '90vh', flexGrow: 1, gap: 3 }}>
-                  <Box sx={{ flex: 3, minWidth: 0 }}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', lg: '64% calc(100% - 64% - 2%)' },
+                    columnGap: { xs: 0, lg: '2%' },
+                    rowGap: 3,
+                    height: '90vh',
+                    flexGrow: 1,
+                    alignItems: 'stretch',
+                  }}
+                >
+                  <Box sx={{ minWidth: 0 }}>
                     <LogisticsMap worldState={bundle.worldState} solution={bundle.solution} />
                   </Box>
-                  <Box sx={{ flex: 1, minWidth: 350 }}>
+                  <Box sx={{ minWidth: { xs: 0, lg: 350 } }}>
                     <AiChatPanel
                       aiAnalysis={bundle.aiAnalysis}
                       solution={bundle.solution}
@@ -155,7 +174,7 @@ const App: React.FC = () => {
               </Grid>
             </Grid>
           )}
-        </Container>
+        </Box>
       </Box>
     </ThemeProvider>
   );
