@@ -2,7 +2,7 @@ import AddLocationAltIcon from '@mui/icons-material/AddLocationAlt';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import { Box, Button, CircularProgress, CssBaseline, Grid, Stack, ThemeProvider, Typography } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import templateAiJson from '../../../../../mock/ai/template.ai_analysis.json';
 import templateSolutionJson from '../../../../../mock/optimizer/template.solution.json';
@@ -10,7 +10,9 @@ import blockedWorldStateJson from '../../../../../scenarios/blocked_route/world_
 import demandWorldStateJson from '../../../../../scenarios/demand_spike/world_state.json';
 import normalWorldStateJson from '../../../../../scenarios/normal/world_state.json';
 import theme from '../styles/theme';
-import type { AiAnalysis, ScenarioType, Solution, WorldState } from '../types/types';
+import { buildAssistantFallback } from '../utils/assistantFallback';
+import type { AiAnalysis, AiAssistantResponse, AiUserAction, ScenarioType, Solution, WorldState } from '../types/types';
+import { deriveRoutingState } from '../utils/lvivRouting';
 import AiChatPanel from './AiChatPanel';
 import Header from './Header';
 import KpiDashboard from './KpiDashboard';
@@ -61,6 +63,15 @@ const App: React.FC = () => {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [addMode, setAddMode] = useState<'warehouse' | 'delivery_point' | null>(null);
+  const [lastUserAction, setLastUserAction] = useState<AiUserAction>({ type: 'none', message: 'Initial state loaded.' });
+  const [assistantState, setAssistantState] = useState<AiAssistantResponse>(
+    buildAssistantFallback(fallbackBundle.normal.worldState, fallbackBundle.normal.solution, fallbackBundle.normal.aiAnalysis),
+  );
+
+  const routingState = useMemo(
+    () => deriveRoutingState(bundle.worldState, bundle.aiAnalysis),
+    [bundle.worldState, bundle.aiAnalysis],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -90,6 +101,7 @@ const App: React.FC = () => {
           setBundle({ worldState, aiAnalysis, solution });
           setSelectedNodeId(null);
           setAddMode(null);
+          setLastUserAction({ type: 'scenario_changed', message: `Scenario switched to ${currentScenario}.` });
         }
       } catch (error) {
         if (!cancelled) {
@@ -101,6 +113,7 @@ const App: React.FC = () => {
           setLoadError(error instanceof Error ? error.message : 'Failed to load generated artifacts.');
           setSelectedNodeId(null);
           setAddMode(null);
+          setLastUserAction({ type: 'scenario_changed', message: `Fallback data loaded for ${currentScenario}.` });
         }
       } finally {
         if (!cancelled) {
@@ -115,6 +128,48 @@ const App: React.FC = () => {
       cancelled = true;
     };
   }, [currentScenario]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function refreshAssistantState() {
+      try {
+        const response = await fetch('/api/assistant/analyze', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            worldState: bundle.worldState,
+            solution: routingState.solution,
+            aiAnalysis: bundle.aiAnalysis,
+            userAction: lastUserAction,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Assistant endpoint failed with ${response.status}`);
+        }
+
+        const nextAssistantState = (await response.json()) as AiAssistantResponse;
+        if (!cancelled) {
+          setAssistantState(nextAssistantState);
+        }
+      } catch {
+        if (!cancelled) {
+          setAssistantState(
+            buildAssistantFallback(bundle.worldState, routingState.solution, bundle.aiAnalysis, undefined, lastUserAction),
+          );
+        }
+      }
+    }
+
+    refreshAssistantState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [bundle.worldState, bundle.aiAnalysis, routingState.solution, lastUserAction]);
 
   const updateWorldState = (updater: (worldState: WorldState) => WorldState) => {
     setBundle((currentBundle) => ({
@@ -160,6 +215,10 @@ const App: React.FC = () => {
 
     setSelectedNodeId(null);
     setAddMode(null);
+    setLastUserAction({
+      type: 'add_node',
+      message: `${nodeType === 'warehouse' ? 'Warehouse' : 'Destination'} added on the map.`,
+    });
   };
 
   const handleMoveNode = (nodeId: string, location: { lat: number; lng: number }) => {
@@ -174,6 +233,12 @@ const App: React.FC = () => {
           : node,
       ),
     }));
+
+    setLastUserAction({
+      type: 'move_node',
+      target_id: nodeId,
+      message: `${nodeId} was moved and routes were recalculated.`,
+    });
   };
 
   const handleDeleteSelectedNode = () => {
@@ -190,6 +255,11 @@ const App: React.FC = () => {
     }));
 
     setSelectedNodeId(null);
+    setLastUserAction({
+      type: 'delete_node',
+      target_id: selectedNodeId,
+      message: `${selectedNodeId} was deleted from the scenario.`,
+    });
   };
 
   return (
@@ -279,8 +349,10 @@ const App: React.FC = () => {
 
                       <Box sx={{ flexGrow: 1, minHeight: 0 }}>
                         <LogisticsMap
-                          worldState={bundle.worldState}
-                          solution={bundle.solution}
+                          worldState={{ ...bundle.worldState, edges: routingState.edges }}
+                          solution={routingState.solution}
+                          edgePolylines={routingState.edgePolylines}
+                          allocationPolylines={routingState.allocationPolylines}
                           selectedNodeId={selectedNodeId}
                           addMode={addMode}
                           onSelectNode={setSelectedNodeId}
@@ -293,15 +365,18 @@ const App: React.FC = () => {
                   <Box sx={{ minWidth: { xs: 0, lg: 350 }, minHeight: { lg: 0 }, height: '100%' }}>
                     <AiChatPanel
                       aiAnalysis={bundle.aiAnalysis}
-                      solution={bundle.solution}
-                      explanation={bundle.solution.explanation}
-                      alerts={bundle.solution.alerts}
+                      assistantState={assistantState}
+                      solution={routingState.solution}
+                      worldState={bundle.worldState}
+                      userAction={lastUserAction}
+                      explanation={routingState.solution.explanation}
+                      alerts={routingState.solution.alerts}
                     />
                   </Box>
                 </Box>
 
                 <Box sx={{ marginBottom: 3 }}>
-                  <KpiDashboard kpis={bundle.solution.kpis} />
+                  <KpiDashboard kpis={routingState.solution.kpis} />
                 </Box>
               </Grid>
             </Grid>

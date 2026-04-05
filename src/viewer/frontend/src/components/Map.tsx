@@ -10,6 +10,8 @@ import MarkerVehicle from './shared/MarkerVehicle';
 interface Props {
     worldState: WorldState,
     solution: Solution,
+    edgePolylines: Record<string, { lat: number; lng: number }[]>,
+    allocationPolylines: Record<string, { lat: number; lng: number }[]>,
     selectedNodeId: string | null,
     addMode: Extract<NodeType, 'warehouse' | 'delivery_point'> | null,
     onSelectNode: (nodeId: string | null) => void,
@@ -40,7 +42,17 @@ const MapInteractions = ({
     return null;
 };
 
-const LogisticsMap = ({ worldState, solution, selectedNodeId, addMode, onSelectNode, onMoveNode, onAddNode }: Props) => {
+const LogisticsMap = ({
+    worldState,
+    solution,
+    edgePolylines,
+    allocationPolylines,
+    selectedNodeId,
+    addMode,
+    onSelectNode,
+    onMoveNode,
+    onAddNode,
+}: Props) => {
     const position: LatLngExpression = [49.83, 24.01];
 
     const getNodeCoords = (nodeId: string) => {
@@ -85,10 +97,9 @@ const LogisticsMap = ({ worldState, solution, selectedNodeId, addMode, onSelectN
                     ))}
 
                     {worldState.edges.map((edge: Edge) => {
-                        const from = getNodeCoords(edge.from_node_id);
-                        const to = getNodeCoords(edge.to_node_id);
-                        if (!from || !to) return null;
-                        const path: [number, number][] = [[from.lat, from.lng], [to.lat, to.lng]];
+                        const polyline = edgePolylines[edge.edge_id];
+                        if (!polyline?.length) return null;
+                        const path: [number, number][] = polyline.map((point) => [point.lat, point.lng]);
                         return <MarkerEdge key={edge.edge_id} edge={edge} isBlocked={edge.status === 'blocked'} path={path} />;
                     })}
 
@@ -96,8 +107,9 @@ const LogisticsMap = ({ worldState, solution, selectedNodeId, addMode, onSelectN
                         const from = getNodeCoords(plan.from_node_id);
                         const to = getNodeCoords(plan.to_node_id);
                         if (!from || !to) return null;
-
-                        const path: [number, number][] = [[from.lat, from.lng], [to.lat, to.lng]];
+                        const allocationId = `${plan.vehicle_id}:${plan.from_node_id}:${plan.to_node_id}:${plan.resource_id}:${i}`;
+                        const polyline = allocationPolylines[allocationId];
+                        const path: [number, number][] = (polyline ?? [from, to]).map((point) => [point.lat, point.lng]);
                         const midpoint = getRouteMidpoint(from, to);
                         const vehicleData = worldState.vehicles.find(v => v.vehicle_id === plan.vehicle_id);
 

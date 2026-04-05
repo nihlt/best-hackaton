@@ -150,3 +150,43 @@ export interface AiAnalysis {
         action?: string;
     }[];
 }
+
+export interface AiAssistantRisk {
+    level: 'low' | 'medium' | 'high';
+    type: 'route_delay' | 'stock_risk' | 'demand_risk' | 'connectivity_risk';
+    target_id: string;
+    message: string;
+}
+
+export interface AiAssistantRecommendation {
+    type: 'reroute' | 'reprioritize' | 'rebalance' | 'monitor';
+    target_id: string;
+    message: string;
+}
+
+export interface AiAssistantInsights {
+    most_critical_node_id: string | null;
+    best_source_node_id: string | null;
+    largest_eta_min: number;
+}
+
+export interface AiAssistantResponse {
+    schema_version: string;
+    timestamp: string;
+    scenario_id: string;
+    model_info: {
+        provider: string;
+        model: string;
+    };
+    summary: string;
+    risks: AiAssistantRisk[];
+    recommendations: AiAssistantRecommendation[];
+    insights: AiAssistantInsights;
+    chat_answer: string;
+}
+
+export interface AiUserAction {
+    type: 'scenario_changed' | 'add_node' | 'move_node' | 'delete_node' | 'none';
+    target_id?: string;
+    message: string;
+}
