@@ -1,7 +1,8 @@
 import { Box, Chip, Paper, Stack } from '@mui/material';
-import { type LatLngExpression } from 'leaflet';
+import L, { type LatLngExpression } from 'leaflet';
 import { MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
 import type { Edge, Node, NodeType, Solution, Vehicle, WorldState } from '../types/types';
+import { getNodeCoords } from '../utils/getCoords';
 import MarkerEdge from './shared/MarkerEdge';
 import MarkerEdgePlaned from './shared/MarkerEdgePlaned';
 import MarkerWarehouse from './shared/MarkerNode';
@@ -55,10 +56,7 @@ const LogisticsMap = ({
 }: Props) => {
     const position: LatLngExpression = [49.83, 24.01];
 
-    const getNodeCoords = (nodeId: string) => {
-        const node = worldState.nodes.find(n => n.node_id === nodeId);
-        return node ? { lat: node.location.lat, lng: node.location.lng } : null;
-    };
+
     return (
         <Paper sx={{ p: 1, height: "100%", flexGrow: 1, backgroundColor: 'var(--blue-slate)', borderRadius: 4, position: 'relative' }}>
             <Box sx={{ width: '100%', height: "100%", borderRadius: 3, overflow: 'hidden', border: '2px solid #4f6272' }}>
@@ -93,6 +91,8 @@ const LogisticsMap = ({
                         return <MarkerEdge key={edge.edge_id} edge={edge} isBlocked={edge.status === 'blocked'} path={path} />;
                     })} */}
 
+
+
                     {worldState.edges.map((edge: Edge) => {
                         const polyline = edgePolylines[edge.edge_id];
                         if (!polyline?.length) return null;
@@ -100,33 +100,11 @@ const LogisticsMap = ({
                         return <MarkerEdge key={edge.edge_id} edge={edge} isBlocked={edge.status === 'blocked'} path={path} />;
                     })}
 
-                    {solution.allocation_plan.map((plan, i) => {
-                        const from = getNodeCoords(plan.from_node_id);
-                        const to = getNodeCoords(plan.to_node_id);
-                        if (!from || !to) return null;
-                        const allocationId = `${plan.vehicle_id}:${plan.from_node_id}:${plan.to_node_id}:${plan.resource_id}:${i}`;
-                        const polyline = allocationPolylines[allocationId];
-                        const path: [number, number][] = (polyline ?? [from, to]).map((point) => [point.lat, point.lng]);
-
-                        return (
-                            <Box key={`plan-group-${i}`}>
-
-                                {/* {vehicleData && (
-                                    <MarkerVehicle
-                                        vehicle={{ ...vehicleData, status: 'in_transit' }}
-                                        position={midpoint} // Відображаємо біля цілі для наочності або посередині
-                                    />
-                                )} */}
-                                <MarkerEdgePlaned plan={plan} path={path} i={i} />
-                            </Box>
-                        );
-                    })}
-
                     {worldState.vehicles.map((vehicle: Vehicle) => {
                         const isMoving = solution.allocation_plan.some(p => p.vehicle_id === vehicle.vehicle_id);
                         if (isMoving) return null;
 
-                        const coords = getNodeCoords(vehicle.current_node_id);
+                        const coords = getNodeCoords(worldState, vehicle.current_node_id);
                         return coords ? (
                             <MarkerVehicle
                                 key={`idle-${vehicle.vehicle_id}`}
@@ -135,7 +113,21 @@ const LogisticsMap = ({
                             />
                         ) : null;
                     })}
+                    {solution.allocation_plan.map((plan, i) => {
+                        const from = getNodeCoords(worldState, plan.from_node_id);
+                        const to = getNodeCoords(worldState, plan.to_node_id);
+                        if (!from || !to) return null;
+                        const allocationId = `${plan.vehicle_id}:${plan.from_node_id}:${plan.to_node_id}:${plan.resource_id}:${i}`;
+                        const polyline = allocationPolylines[allocationId];
+                        const path: [number, number][] = (polyline ?? [from, to]).map((point) => [point.lat, point.lng]);
 
+
+                        return (
+                            <Box key={`plan-group-${i}`}>
+                                <MarkerEdgePlaned plan={plan} path={path} i={i} />
+                            </Box>
+                        );
+                    })}
 
 
 

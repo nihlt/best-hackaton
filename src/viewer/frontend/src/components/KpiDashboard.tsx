@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid, Paper, Typography, Box, Stack } from '@mui/material';
+import { Paper, Typography, Box, Stack } from '@mui/material';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import WarningIcon from '@mui/icons-material/Warning';
 import SpeedIcon from '@mui/icons-material/Speed';
@@ -28,7 +28,7 @@ const KpiCard = ({
     subtitle: string
 }) => (
     <Paper sx={{
-        p: 2,
+        p: { xs: 1.5, sm: 2 },
         backgroundColor: 'var(--blue-slate)',
         border: `1px solid ${color}`,
         borderRadius: 4,
@@ -39,7 +39,7 @@ const KpiCard = ({
         <Stack direction="row" spacing={2} alignItems="center">
             <Box sx={{
                 backgroundColor: 'rgba(255,255,255,0.05)',
-                p: 1.5,
+                p: { xs: 1, sm: 1.5 },
                 borderRadius: 3,
                 display: 'flex',
                 color: color,
@@ -64,44 +64,43 @@ const KpiCard = ({
 
 const KpiDashboard: React.FC<KpiProps> = ({ kpis }) => {
     return (
-        <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <KpiCard
-                    title="Доставлено"
-                    value={kpis.total_delivered}
-                    subtitle="Ресурсів у дорозі"
-                    icon={<LocalShippingIcon fontSize="large" />}
-                    color="var(--periwinkle)"
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <KpiCard
-                    title="Дефіцит"
-                    value={kpis.unmet_demand}
-                    subtitle="Критичний попит"
-                    icon={<WarningIcon fontSize="large" />}
-                    color="var(--rosewood)"
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <KpiCard
-                    title="Ефективність"
-                    value={`${(kpis.vehicle_utilization * 100).toFixed(0)}%`}
-                    subtitle="Завантаження флоту"
-                    icon={<SpeedIcon fontSize="large" />}
-                    color="var(--petal-rouge)"
-                />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <KpiCard
-                    title="Сер. Час"
-                    value={`${kpis.avg_delivery_time_min} хв`}
-                    subtitle="Час на маршруті"
-                    icon={<TimerIcon fontSize="large" />}
-                    color="#ffffff"
-                />
-            </Grid>
-        </Grid>
+        <Box
+            sx={{
+                display: 'grid',
+                // Адаптивна сітка: 1 колонка на мобільних, 2 на планшетах, 4 на десктопі
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(4, 1fr)' },
+                gap: { xs: 1.5, md: 2 }
+            }}
+        >
+            <KpiCard
+                title="Доставлено"
+                value={kpis.total_delivered}
+                subtitle="Ресурсів у дорозі"
+                icon={<LocalShippingIcon fontSize="large" />}
+                color="var(--periwinkle)"
+            />
+            <KpiCard
+                title="Дефіцит"
+                value={kpis.unmet_demand}
+                subtitle="Критичний попит"
+                icon={<WarningIcon fontSize="large" />}
+                color="var(--rosewood)"
+            />
+            <KpiCard
+                title="Ефективність"
+                value={`${(kpis.vehicle_utilization * 100).toFixed(0)}%`}
+                subtitle="Завантаження флоту"
+                icon={<SpeedIcon fontSize="large" />}
+                color="var(--petal-rouge)"
+            />
+            <KpiCard
+                title="Сер. Час"
+                value={`${kpis.avg_delivery_time_min} хв`}
+                subtitle="Час на маршруті"
+                icon={<TimerIcon fontSize="large" />}
+                color="#ffffff"
+            />
+        </Box>
     );
 };
 
