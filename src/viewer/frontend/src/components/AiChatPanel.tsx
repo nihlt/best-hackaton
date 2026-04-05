@@ -1,5 +1,6 @@
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
+import CloseIcon from '@mui/icons-material/Close';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import TipsAndUpdatesIcon from '@mui/icons-material/TipsAndUpdates';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
@@ -17,8 +18,10 @@ interface Props {
     explanation: string[];
     alerts: {
         severity: 'info' | 'warning' | 'critical';
+        type: string;
         message: string;
     }[];
+    onClose?: () => void; // Додано проп для закриття на мобільних
 }
 
 interface ChatMessage {
@@ -26,7 +29,7 @@ interface ChatMessage {
     text: string;
 }
 
-export default function AiChatPanel({ aiAnalysis, assistantState, solution, worldState, userAction, explanation, alerts }: Props) {
+export default function AiChatPanel({ aiAnalysis, assistantState, solution, worldState, userAction, explanation, alerts, onClose }: Props) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [curMessage, setCurMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
@@ -42,9 +45,7 @@ export default function AiChatPanel({ aiAnalysis, assistantState, solution, worl
         try {
             const response = await fetch('/api/assistant/analyze', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     worldState,
                     solution,
@@ -54,9 +55,7 @@ export default function AiChatPanel({ aiAnalysis, assistantState, solution, worl
                 }),
             });
 
-            if (!response.ok) {
-                throw new Error(`Assistant endpoint failed with ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`Assistant endpoint failed with ${response.status}`);
 
             const assistantReply = (await response.json()) as AiAssistantResponse;
             setMessages((prevMessages) => [...prevMessages, { role: 'assistant', text: assistantReply.chat_answer }]);
@@ -81,22 +80,27 @@ export default function AiChatPanel({ aiAnalysis, assistantState, solution, worl
                 flex: 1,
             }}
         >
-            <Box sx={{ p: 2, backgroundColor: 'rgba(183, 195, 243, 0.1)', display: 'flex', alignItems: 'center', gap: 1 }}>
-                <SmartToyIcon sx={{ color: 'var(--periwinkle)' }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                    Pipeline Assistant
-                </Typography>
+            <Box sx={{ p: { xs: 1.5, sm: 2 }, backgroundColor: 'rgba(183, 195, 243, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <SmartToyIcon sx={{ color: 'var(--periwinkle)' }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                        Pipeline Assistant
+                    </Typography>
+                </Box>
+                {onClose && (
+                    <IconButton onClick={onClose} size="small" sx={{ color: 'var(--periwinkle)' }}>
+                        <CloseIcon />
+                    </IconButton>
+                )}
             </Box>
 
             <Divider sx={{ borderColor: 'rgba(183, 195, 243, 0.2)' }} />
 
             <Box
                 sx={{
-                    p: 2,
+                    p: { xs: 1.5, sm: 2 },
                     overflowY: 'auto',
-                    '&::-webkit-scrollbar': {
-                        display: 'none',
-                    },
+                    '&::-webkit-scrollbar': { display: 'none' },
                     flexGrow: 1,
                     display: 'flex',
                     flexDirection: 'column',
@@ -141,31 +145,17 @@ export default function AiChatPanel({ aiAnalysis, assistantState, solution, worl
                             gap: 1,
                         }}
                     >
-                        <WarningAmberIcon
-                            sx={{
-                                fontSize: 20,
-                                color: alert.severity === 'critical' ? 'var(--rosewood)' : 'var(--petal-rouge)',
-                            }}
-                        />
+                        <WarningAmberIcon sx={{ fontSize: 20, color: alert.severity === 'critical' ? 'var(--rosewood)' : 'var(--petal-rouge)' }} />
                         <Typography variant="caption" sx={{ color: '#fff' }}>
                             {alert.message}
                         </Typography>
                     </Box>
                 ))}
 
-                <Box
-                    sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        backgroundColor: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                    }}
-                >
+                <Box sx={{ p: 1.5, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                         <TipsAndUpdatesIcon sx={{ fontSize: 18, color: 'var(--periwinkle)' }} />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                            Recommendations
-                        </Typography>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Recommendations</Typography>
                     </Box>
                     {assistantState.recommendations.map((recommendation, index) => (
                         <Typography key={`rec-${index}`} variant="body2" sx={{ color: '#fff', mb: 0.75, lineHeight: 1.5 }}>
@@ -174,19 +164,10 @@ export default function AiChatPanel({ aiAnalysis, assistantState, solution, worl
                     ))}
                 </Box>
 
-                <Box
-                    sx={{
-                        p: 1.5,
-                        borderRadius: 2,
-                        backgroundColor: 'rgba(255,255,255,0.04)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                    }}
-                >
+                <Box sx={{ p: 1.5, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                         <TimelineIcon sx={{ fontSize: 18, color: 'var(--periwinkle)' }} />
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-                            Allocation Plan
-                        </Typography>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Allocation Plan</Typography>
                     </Box>
                     {solution.allocation_plan.length > 0 ? (
                         solution.allocation_plan.map((plan, index) => (
@@ -195,24 +176,13 @@ export default function AiChatPanel({ aiAnalysis, assistantState, solution, worl
                             </Typography>
                         ))
                     ) : (
-                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>
-                            No delivery allocations were generated.
-                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.7)' }}>No delivery allocations were generated.</Typography>
                     )}
                 </Box>
 
                 {!!solution.unserved_demands?.length && (
-                    <Box
-                        sx={{
-                            p: 1.5,
-                            borderRadius: 2,
-                            backgroundColor: 'rgba(207, 18, 89, 0.08)',
-                            border: '1px solid rgba(207, 18, 89, 0.25)',
-                        }}
-                    >
-                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>
-                            Unserved Demand
-                        </Typography>
+                    <Box sx={{ p: 1.5, borderRadius: 2, backgroundColor: 'rgba(207, 18, 89, 0.08)', border: '1px solid rgba(207, 18, 89, 0.25)' }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1 }}>Unserved Demand</Typography>
                         {solution.unserved_demands.map((item, index) => (
                             <Typography key={`unserved-${index}`} variant="body2" sx={{ color: '#fff', mb: 0.75, lineHeight: 1.5 }}>
                                 {item.node_id}: {item.resource_id} {item.quantity} ({item.reason})
@@ -228,14 +198,12 @@ export default function AiChatPanel({ aiAnalysis, assistantState, solution, worl
                             alignSelf: 'flex-start',
                             maxWidth: '90%',
                             backgroundColor: 'rgba(183, 195, 243, 0.05)',
-                            p: 2,
+                            p: { xs: 1.5, sm: 2 },
                             borderRadius: '0px 16px 16px 16px',
                             borderLeft: '3px solid var(--periwinkle)',
                         }}
                     >
-                        <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
-                            {text}
-                        </Typography>
+                        <Typography variant="body2" sx={{ lineHeight: 1.6 }}>{text}</Typography>
                     </Box>
                 ))}
 
@@ -246,24 +214,22 @@ export default function AiChatPanel({ aiAnalysis, assistantState, solution, worl
                             alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
                             maxWidth: '90%',
                             backgroundColor: 'rgba(183, 195, 243, 0.05)',
-                            p: 2,
+                            p: { xs: 1.5, sm: 2 },
                             borderRadius: message.role === 'user' ? '16px 0px 16px 16px' : '0px 16px 16px 16px',
                             borderRight: message.role === 'user' ? '3px solid var(--periwinkle)' : 'none',
                             borderLeft: message.role === 'assistant' ? '3px solid var(--periwinkle)' : 'none',
                         }}
                     >
-                        <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
-                            {message.text}
-                        </Typography>
+                        <Typography variant="body2" sx={{ lineHeight: 1.6 }}>{message.text}</Typography>
                     </Box>
                 ))}
             </Box>
 
-            <Box sx={{ p: 2, backgroundColor: 'rgba(64, 78, 92, 0.5)' }}>
+            <Box sx={{ p: { xs: 1.5, sm: 2 }, backgroundColor: 'rgba(64, 78, 92, 0.5)' }}>
                 <TextField
                     fullWidth
                     size="small"
-                    placeholder="Ask what changed in the current logistics state"
+                    placeholder="Ask what changed..."
                     variant="outlined"
                     value={curMessage}
                     onKeyDown={(e) => {
